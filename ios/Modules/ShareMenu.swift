@@ -98,21 +98,37 @@ class ShareMenu: RCTEventEmitter {
         }
     }
 
+    func removeData() {
+        if let bundleId = Bundle.main.bundleIdentifier, let userDefaults = UserDefaults(suiteName: "group.\(bundleId)") {
+            guard let userDefaults = UserDefaults(suiteName: "group.\(bundleId)") else {
+                print("Error: \(NO_APP_GROUP_ERROR)")
+                return
+            }
+            userDefaults.removeObject(forKey: USER_DEFAULTS_EXTRA_DATA_KEY)
+            userDefaults.removeObject(forKey: USER_DEFAULTS_KEY)
+            userDefaults.synchronize()
+        }
+    }
+
     @objc(getSharedText:)
     func getSharedText(callback: RCTResponseSenderBlock) {
-        guard var data: [String:Any] = sharedData else {
+        do {
+            var data: [String:Any] = [:]
+            if let bundleId = Bundle.main.bundleIdentifier, let userDefaults = UserDefaults(suiteName: "group.\(bundleId)") {
+                data[EXTRA_DATA_KEY] = userDefaults.object(forKey: USER_DEFAULTS_EXTRA_DATA_KEY) as? [String:Any]
+            } else {
+                print("Error: \(NO_APP_GROUP_ERROR)")
+            }
+
+            callback([data as Any])
+            sharedData = nil
+            
+            removeData()
+
+        } catch {
             callback([])
             return
         }
-
-        if let bundleId = Bundle.main.bundleIdentifier, let userDefaults = UserDefaults(suiteName: "group.\(bundleId)") {
-            data[EXTRA_DATA_KEY] = userDefaults.object(forKey: USER_DEFAULTS_EXTRA_DATA_KEY) as? [String:Any]
-        } else {
-            print("Error: \(NO_APP_GROUP_ERROR)")
-        }
-
-        callback([data as Any])
-        sharedData = nil
     }
     
     func dispatchEvent(with data: [String:String], and extraData: [String:Any]?) {
