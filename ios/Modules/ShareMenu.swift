@@ -1,3 +1,4 @@
+
 @objc(ShareMenu)
 class ShareMenu: RCTEventEmitter {
 
@@ -122,11 +123,10 @@ class ShareMenu: RCTEventEmitter {
 
             callback([data as Any])
             sharedData = nil
-            
             removeData()
-
         } catch {
             callback([])
+            removeData()
             return
         }
     }
@@ -140,5 +140,6 @@ class ShareMenu: RCTEventEmitter {
         }
         
         sendEvent(withName: NEW_SHARE_EVENT, body: finalData)
+        removeData()
     }
 }
